@@ -24,7 +24,6 @@ class Source(Base):
     def __init__(self, vim):
         Base.__init__(self, vim)
 
-        self.is_debug_enabled = True
         self.name = 'plugin'
         self.mark = '[P]'
         self.filetypes = ['vim']
