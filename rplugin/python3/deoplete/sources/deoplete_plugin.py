@@ -40,19 +40,21 @@ class Source(Base):
             r = request.urlopen(base_url)
             raw_response = r.read().decode('utf-8')
             json_response = json.loads(raw_response)
-            return [
+            is_last = 'rel="next"' not in r.getheader('Link', '')
+            repos = [
                 {
                     'word': repo['name'],
                     'menu': repo['description'],
                 }
                 for repo in json_response
             ]
+            return repos, is_last
         except HTTPError as e:
             if e.code == 403:
                 self.print('API rate limit exceeded')
         except Exception as e:
             pass
-        return []
+        return [], True
 
     def _get_user(self, text):
         m = re.search(self.input_pattern, text)
@@ -61,7 +63,7 @@ class Source(Base):
     def gather_candidates(self, context):
         input_text = context['input']
         user = self._get_user(input_text)
-        repos = self._get_repos(user, self._current_page)
+        repos, is_last = self._get_repos(user, self._current_page)
         self._current_page += 1
-        context['is_async'] = bool(repos)
+        context['is_async'] = not is_last
         return repos
